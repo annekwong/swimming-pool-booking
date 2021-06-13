@@ -9,7 +9,7 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import ElementClickInterceptedException
 from selenium.common.exceptions import TimeoutException
 
-from time import time
+from time import time, sleep
 
 # from time import sleep
 import regex
@@ -38,7 +38,8 @@ def WaitPageLoad(driver):
     page_ready = ''
     while(page_ready != 'complete'):
         # print("Wait continuing...")
-        driver.implicitly_wait(0.5)
+        # driver.implicitly_wait(0.5)
+        sleep(0.5)
         page_ready = driver.execute_script("return document.readyState")
     # print("Wait finished!")
     
@@ -48,18 +49,19 @@ def xpaths(driver, x):
     return driver.find_elements_by_xpath(x)
 
 
-def slow_type(element, text, delay=0.25):
+def slow_type(element, text, delay=0.125):
     for character in text:
         element.send_keys(character)
-        driver.implicitly_wait(delay)
+        # driver.implicitly_wait(delay)
+        sleep(delay)
 
 def CheckServerTime(url):
     requests.get(url).headers['Date']
 
 url = "https://myrichmond.richmond.ca"
 credentials = {
-    "my_login": "take3this@yahoo.com",
-    "my_password": "PoolTest7",
+    # "my_login": "take3this@yahoo.com",
+    # "my_password": "PoolTest7",
     "login": "Monylawk@yahoo.ca",
     "password": "Richmond1"
 }
@@ -78,21 +80,28 @@ def login():
         # cred_login = credentials['my_login']
         # cred_pass  = credentials['my_password']
     # else:
-        cred_login = credentials['login']
-        cred_pass  = credentials['password']
-    
+    cred_login = credentials['login']
+    cred_pass  = credentials['password']
+
     login = WebDriverWait(driver, big_timeout).until(EC.visibility_of_element_located((By.XPATH, "*//input[@type='text']")))
+    sleep(1)
     login.click()
-    driver.implicitly_wait(1)
+    # driver.implicitly_wait(1)
+    sleep(1)
     slow_type(login, cred_login)
+    
+    # driver.implicitly_wait(5)
+    sleep(5)
     
     password = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.XPATH, "*//input[@type='password']")))
     password.click()
-    driver.implicitly_wait(1)
+    # driver.implicitly_wait(1)
+    sleep(1)
     slow_type(password, cred_pass)
     
     login_button = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.XPATH, "*//input[@id='loginButton_0']")))
-    driver.implicitly_wait(1)
+    # driver.implicitly_wait(1)
+    sleep(1)
     login_button.click()
     
 def Minoru():
@@ -100,21 +109,23 @@ def Minoru():
     # drawer_button = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.XPATH, "*//button[@aria-label='open drawer']")))
     # drawer_button.click()
     
+    login()
+    
     flag = True
+    sleep_wait = 10
     while(flag):
         try:
-            login()
+            sleep(sleep_wait)
             
             activities_button = WebDriverWait(driver, medium_timeout).until(EC.element_to_be_clickable((By.XPATH, "*//div/ul/a[contains(@href, 'richmondcity.perfectmind.com')]")))
-            driver.implicitly_wait(1)
+            sleep(1)
             activities_button.click()
         except ElementClickInterceptedException:
             # print("Click intercepted")
             pass
         except:
+            sleep_wait += 5
             driver.refresh()
-        finally:
-            flag = False
     activities_button.click()
     
     # switch to another tab

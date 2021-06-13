@@ -7,6 +7,9 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
 from selenium.common.exceptions import ElementClickInterceptedException
+from selenium.common.exceptions import TimeoutException
+
+from time import time
 
 # from time import sleep
 import regex
@@ -64,47 +67,52 @@ click_prefix = "https://richmondcity.perfectmind.com"
 
 # --- --- ---     --- --- ---
 
-driver = get_chrome()
-driver.get(url)
+
 
 big_timeout = 60
+medium_timeout = 10
 timeout = 5
 
-def login(test=True):
-    if(test):
-        cred_login = credentials['my_login']
-        cred_pass  = credentials['my_password']
-    else:
+def login():
+    # if(test):
+        # cred_login = credentials['my_login']
+        # cred_pass  = credentials['my_password']
+    # else:
         cred_login = credentials['login']
         cred_pass  = credentials['password']
-
+    
     login = WebDriverWait(driver, big_timeout).until(EC.visibility_of_element_located((By.XPATH, "*//input[@type='text']")))
-    # login = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.XPATH, "*//input[@type='text']")))
     login.click()
     driver.implicitly_wait(1)
     slow_type(login, cred_login)
-
+    
     password = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.XPATH, "*//input[@type='password']")))
     password.click()
     driver.implicitly_wait(1)
     slow_type(password, cred_pass)
-
+    
     login_button = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.XPATH, "*//input[@id='loginButton_0']")))
     driver.implicitly_wait(1)
     login_button.click()
-
+    
+def Minoru():
     # WAIT FOR MY RICHMOND TO LOAD
     # drawer_button = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.XPATH, "*//button[@aria-label='open drawer']")))
     # drawer_button.click()
-
+    
     flag = True
     while(flag):
         try:
-            activities_button = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.XPATH, "*//div/ul/a[contains(@href, 'richmondcity.perfectmind.com')]")))
+            login()
+            
+            activities_button = WebDriverWait(driver, medium_timeout).until(EC.element_to_be_clickable((By.XPATH, "*//div/ul/a[contains(@href, 'richmondcity.perfectmind.com')]")))
             driver.implicitly_wait(1)
             activities_button.click()
         except ElementClickInterceptedException:
-            print("Click intercepted")
+            # print("Click intercepted")
+            pass
+        except:
+            driver.refresh()
         finally:
             flag = False
     activities_button.click()
@@ -112,16 +120,19 @@ def login(test=True):
     # switch to another tab
     driver.switch_to.window(driver.window_handles[1])
     WaitPageLoad(driver)
-    print("Perfect mind!")
-
+    # print("Perfect mind!")
+    
     # - in Chrome xpath query, this gave me what I wanted
     # *//span[contains(text(), 'REGISTERED VISIT - LANE SWIMMING')]/ancestor::div[@class='bm-class-container'] / *//span[contains(text(), '9:00am -')]/ancestor::div[@class='bm-class-container']
-
-
+    
+    
     # - click to "Minoru Centre for Active Living"
     # xpath(driver, "*//h2[contains(text(), 'Registered Visits')]/following-sibling::ul/li/a[contains(text(), 'Minoru Centre for Active Living')]").click()
     minoru_centre = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.XPATH, "*//h2[contains(text(), 'Registered Visits')]/following-sibling::ul/li/a[contains(text(), 'Minoru Centre for Active Living')]")))
     minoru_centre.click()
+
+
+
 
 # - wait for table[@id='classes'] to load
 # - got it.
@@ -132,6 +143,8 @@ def login(test=True):
 def go(i):
     global driver
     global days
+    global register_buttons
+    days = register_buttons[7:]
     driver.get(days[i])
     
 def s():
@@ -151,6 +164,7 @@ def clickalert():
     except: 
         pass
 
+"""
 def register():
     register_flag = True
     while(register_flag):
@@ -165,25 +179,7 @@ def register():
             sleep(1)
         finally:
             register_flag = False
-
-
-
-
-
-
-### ----- FLOW -----
-login(False)
-
-# - wait for the table to appear
-WebDriverWait(driver, timeout).until(EC.visibility_of_element_located((By.XPATH, "*//table[@id='classes']")))
-# --- DETERMINES THE VENUES TO BOOK
-# - for testing at least, can make this return things based on search string from predetermined set
-register_buttons = xpaths(driver, "*//span[contains(text(), 'REGISTERED VISIT - LANE SWIMMING')]/ancestor::div[@class='bm-class-container'] / *//span[contains(text(),'9:00am - ')]/ancestor::div[@class='bm-class-container']//input[@type='button']")
-days = [click_prefix+regex.compile(r"\(\'(.*)\'\)").search(x.get_attribute('onclick'))[1] for x in register_buttons[7:]]
-
-# testrun()
-# fullrun()
-
+"""
 
 def next0():
     print("Going next0")
@@ -197,19 +193,22 @@ def next1():
 # - test up to questionnaire
 # --- go the the page, THEN launch this. That way can test irrespective of where we are
 def process():
-    
-    # WaitPageLoad(driver)  # - are these necessary when I use WebDriverWait everywhere?
-    register_button = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.XPATH, "*//a[contains(@class,'book-button')]")))
-    clickalert()  # ?
+    reg_flag = True
+    while(reg_flag):
+        try:
+            register_button = WebDriverWait(driver, 0.5).until(EC.element_to_be_clickable((By.XPATH, "*//a[contains(@class,'book-button')]")))
+        except TimeoutException:
+            driver.refresh()
+        finally:
+            reg_flag = False
+    # register_button = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.XPATH, "*//a[contains(@class,'book-button')]")))
+    clickalert()
     register_button.click()
     
     
     # --- ATTENDEES
-    # attendees = WebDriverWait(driver, timeout).until(EC.visibility_of_element_located((By.XPATH, "*//div[@id='event-attendees']")))
-    clickalert()
-    # label = xpath(attendees, ".//table//label[contains(text(), '(You)')]")
-    # checkbox = xpath(label, "./ancestor::tr//input[@type='checkbox']")
     checkbox = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.XPATH, ".//table//label[contains(text(), '(You)')]/ancestor::tr//input[@type='checkbox']")))
+    clickalert()
     if not checkbox.is_selected():
         checkbox.click()
     clickalert()
@@ -222,74 +221,56 @@ def process():
     
     
     # --- FEES AND EXTRAS
-    # div[@class='fee-section']//span[contains(text(), 'Aquatic & Fitness Membership)]
-    # WaitPageLoad(driver)
-    pick_fee = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.XPATH, "*//div[@class='fee-section']//span[contains(text(), 'Free')]")))
-    # pick_fee = xpath(driver, "*//div[@class='fee-section']//span[contains(text(), 'Free')]/ancestor::tr//input[@type='radio']")
-    
-    # pick_flag = True
-    # while(pick_flag):
-        # try:
-            # pick_fee = xpath(driver, "*//div[@class='fee-section']//span[contains(text(), 'Free')]/ancestor::tr//input[@type='radio']")
-        # except:
-            # sleep(0.5)
-        # finally:
-            # pick_fee.click()
-            
+    pick_fee = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.XPATH, "*//div[@class='fee-section']//span[contains(text(), 'Aquatic & Fitness Membership')]/preceding-sibling::span[@class='outer-circle']")))
+    clickalert()
+    pick_fee.click()
     next0()
     
-    return
-    
     # --- PAYMENT
-    order_button = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.XPATH, "*//button[contains(text(), 'Place My Order')]")))
-    # order_button = xpath(driver, "*//button[contains(text(), 'Place My Order')]")
+    order_button = WebDriverWait(driver, medium_timeout).until(EC.element_to_be_clickable((By.XPATH, "*//button[contains(text(), 'Place My Order')]")))
+    print("found the button, escaping")
+    return
     order_button.click()
+    
 
-# day(0)
-
-def hide():
-
-    # for day in days:
-    for i in range(len(days)):
-        go(i)
-        
-        # WaitPageLoad(driver)  # - are these necessary when I use WebDriverWait everywhere?
-        register_button = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.XPATH, "*//a[contains(@class,'book-button')]")))
-        clickalert()  # ?
-        register_button.click()
-
-        # --- ATTENDEES
-        # attendees = WebDriverWait(driver, timeout).until(EC.visibility_of_element_located((By.XPATH, "*//div[@id='event-attendees']")))
-        clickalert()
-        # label = xpath(attendees, ".//table//label[contains(text(), '(You)')]")
-        # checkbox = xpath(label, "./ancestor::tr//input[@type='checkbox']")
-        checkbox = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.XPATH, ".//table//label[contains(text(), '(You)')]/ancestor::tr//input[@type='checkbox']")))
-        if not checkbox.is_selected():
-            checkbox.click()
-        next0()
-        
-        # --- QUESTIONNAIRE
-        # - click the covid checkbox if unchecked
-        
-        
-        clickalert()
-        # - next1
-        # xpath(driver, "*//a[@title='Next']").click()
-
-        # --- FEES & EXTRAS
-        # - select FREE or '$0.00'
-
-
-
-        # - next0
-        # xpath(driver, "*//span[text()='Next']").click()
-
-
-
-        # --- PAYMENT
+# register_buttons = xpaths(driver, "*//span[contains(text(), 'REGISTERED VISIT - LANE SWIMMING')]/ancestor::div[@class='bm-class-container'] / *//span[contains(text(),'9:00am - ')]/ancestor::div[@class='bm-class-container']//input[@type='button']")
+def RegisterButtons(type_str, time_str):
+    register_buttons = xpaths(driver, "*//span[contains(text(), '{:s}')]/ancestor::div[@class='bm-class-container'] / *//span[contains(text(),'{:s} ')]/ancestor::div[@class='bm-class-container']//input[@type='button']".format(type_str, time_str))
+    return [click_prefix+regex.compile(r"\(\'(.*)\'\)").search(x.get_attribute('onclick'))[1] for x in register_buttons]
 
 
 
 
+
+### ----- FLOW -----
+driver = get_chrome()
+driver.get(url)
+
+start = time()
+Minoru()
+end = time()
+print("> Login+Minoru: {:3.2f} seconds".format(end-start))
+
+# - wait for the table to appear
+start = time()
+WebDriverWait(driver, big_timeout).until(EC.visibility_of_element_located((By.XPATH, "*//table[@id='classes']")))
+end = time()
+print("> Classes: {:3.2f} seconds".format(end-start))
+# --- DETERMINES THE VENUES TO BOOK
+# - for testing at least, can make this return things based on search string from predetermined set
+
+# - the main order one
+# register_buttons = RegisterButtons('REGISTERED VISIT - LANE SWIMMING', '9:00am -')
+# days = register_buttons[7:]
+register_buttons = RegisterButtons('REGISTERED VISIT - FITNESS CENTRE', '6:45pm -')
+
+driver.get(register_buttons[0])
+process()
+
+
+
+
+# testrun()
+# fullrun()
 
 

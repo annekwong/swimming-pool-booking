@@ -14,7 +14,6 @@ from datetime import datetime
 import json
 import os
 
-# from time import sleep
 import regex
 from glob import glob
 
@@ -102,11 +101,8 @@ def login():
     sleep(0.5)
     login_button.click()
     
-def Minoru():
-    # WAIT FOR MY RICHMOND TO LOAD
-    # drawer_button = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.XPATH, "*//button[@aria-label='open drawer']")))
-    # drawer_button.click()
     
+def Minoru():
     login()
     
     flag = True
@@ -119,8 +115,9 @@ def Minoru():
             # print("Click intercepted")
             pass
         except:
+            print("Probably maintenance... F5-ing")
             sleep_wait += 5
-            driver.refresh()
+            driver.refresh() # this block should be sufficient against maintenance... COULDA TESTED IT THEN
         else:
             flag = False
             sleep(1)
@@ -167,7 +164,8 @@ def clickalert():
     except: 
         pass
     else:
-        print("Alert found and clicked away")
+        pass
+        # print("Alert found and clicked away")
     sleep(0.5)
 
 """
@@ -188,11 +186,11 @@ def register():
 """
 
 def next0():
-    print("Going next0")
+    # print("Going next0")
     xpath(driver, "*//span[text()='Next']").click()
 
 def next1():
-    print("Going next1")
+    # print("Going next1")
     xpath(driver, "*//a[@title='Next']").click()
 
 
@@ -204,7 +202,7 @@ def process():
     reg_flag = True
     while(reg_flag):
         try:
-            register_button = WebDriverWait(driver, 0.5).until(EC.element_to_be_clickable((By.XPATH, "*//a[contains(@class,'book-button')]")))
+            register_button = WebDriverWait(driver, 1.5).until(EC.element_to_be_clickable((By.XPATH, "*//a[contains(@class,'book-button')]")))
         except TimeoutException:
             driver.refresh()
         else:
@@ -230,7 +228,7 @@ def process():
     start = time()
     WaitPageLoad(driver)
     end = time()
-    print("> load wait: {:3.2f}".format(end-start))
+    # print("> load wait: {:3.2f}".format(end-start))
     
     consent_check = xpath(driver, "*//*[@class='reg-form']//div[@class='questionField']//input")
     consent_press = xpath(driver, "*//*[@class='reg-form']//div[@class='questionField']//label")
@@ -253,11 +251,12 @@ def process():
     WebDriverWait(driver, medium_timeout).until(EC.visibility_of_element_located((By.XPATH, "*//iframe[@name='iframe']")))
     driver.switch_to.frame(xpath(driver, "*//iframe[@name='iframe']")) # can wait until it loads
     order_button = WebDriverWait(driver, medium_timeout).until(EC.element_to_be_clickable((By.XPATH, "*//button[@class='process-now'][contains(text(), 'Place My Order')]")))
-    print("Got to the order button")
+    # print("Got to the order button")
     try:
         order_button = WebDriverWait(driver, medium_timeout).until(EC.element_to_be_clickable((By.XPATH, "*//button[@class='process-now'][contains(text(), 'Place My Order')]")))
     except:
-        print("Can't find order button")
+        pass
+        # print("Can't find order button")
     else:
         order_button.click()
     
@@ -266,16 +265,24 @@ def process():
     # --- session confirmation
     WaitPageLoad(driver)
     
-    session = xpath(driver, "*//div[@id='main-content']//div[@class='bm-event-info']//h2/span").text
-    date    = xpath(driver, "*//div[@id='main-content']//div[@class='bm-event-info']//span/span[@class='bm-date']").text.split(", ")[-1]
-    time    = xpath(driver, "*//div[@id='main-content']//div[@class='bm-event-info']//span/span[@class='bm-subject']").text
+    # session   = xpath(driver, "*//div[@id='main-content']//div[@class='bm-event-info']//h2/span").text
+    # book_date = xpath(driver, "*//div[@id='main-content']//div[@class='bm-event-info']//span/span[@class='bm-date']").text.split(", ")[-1]
+    # book_time = xpath(driver, "*//div[@id='main-content']//div[@class='bm-event-info']//span/span[@class='bm-subject']").text
+    session_el  = WebDriverWait(driver, timeout).until(EC.visibility_of_element_located((By.XPATH, "*//div[@id='main-content']//div[@class='bm-event-info']//h2/span")))
+    bookdate_el = WebDriverWait(driver, timeout).until(EC.visibility_of_element_located((By.XPATH, "*//div[@id='main-content']//div[@class='bm-event-info']//span/span[@class='bm-date']")))
+    booktime_el = WebDriverWait(driver, timeout).until(EC.visibility_of_element_located((By.XPATH, "*//div[@id='main-content']//div[@class='bm-event-info']//span/span[@class='bm-subject']")))
+    
+    session = session_el.text
+    book_date = bookdate_el.text.split(", ")[-1]
+    book_time = booktime_el.text
     
     d = {
         "session" : session,
-        "date" : date,
-        "time" : time
+        "date" : book_date,
+        "time" : book_time
     }
 
+    # - not the best place for a folder declaration, boa
     save_folder = ".\\temp\\"
     if not os.path.exists(save_folder):
         os.mkdir(save_folder)
@@ -289,7 +296,7 @@ def process():
 # register_buttons = xpaths(driver, "*//span[contains(text(), 'REGISTERED VISIT - LANE SWIMMING')]/ancestor::div[@class='bm-class-container'] / *//span[contains(text(),'9:00am - ')]/ancestor::div[@class='bm-class-container']//input[@type='button']")
 def RegisterButtons(type_str, time_str):
     register_buttons = xpaths(driver, "*//span[contains(text(), '{:s}')]/ancestor::div[@class='bm-class-container'] / *//span[contains(text(),'{:s} ')]/ancestor::div[@class='bm-class-container']//input[@type='button']".format(type_str, time_str))
-    return [click_prefix+regex.compile(r"\(\'(.*)\'\)").search(x.get_attribute('onclick'))[1] for x in register_buttons]
+    return [click_prefix+regex.compile(r"\(\'(.*)\'\)").search(x.get_attribute('onclick'))[1] for x in register_buttons if x.get_attribute('value')=='REGISTER']
 
 
 
@@ -312,18 +319,22 @@ print("> Classes: {:3.2f} seconds".format(end-start))
 # --- DETERMINES THE VENUES TO BOOK
 # - for testing at least, can make this return things based on search string from predetermined set
 
+
 # - the main order one
 # register_buttons = RegisterButtons('REGISTERED VISIT - LANE SWIMMING', '9:00am -')
 # days = register_buttons[7:]
 register_buttons = RegisterButtons('REGISTERED VISIT - FITNESS CENTRE', '6:45pm -')
 
-driver.get(register_buttons[0])
+# for i in range(1,3):
+driver.get(register_buttons[2])
 process()
+# for rb in register_buttons:
+    # driver.get(rb)
+    # process()
+    # sleep(1)
 
 
-
-
-# testrun()
-# fullrun()
-
+driver.close()
+driver.quit()
+exit(0)
 

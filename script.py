@@ -38,7 +38,6 @@ def WaitPageLoad(driver):
     page_ready = ''
     while(page_ready != 'complete'):
         # print("Wait continuing...")
-        # driver.implicitly_wait(0.5)
         sleep(0.5)
         page_ready = driver.execute_script("return document.readyState")
     # print("Wait finished!")
@@ -49,10 +48,9 @@ def xpaths(driver, x):
     return driver.find_elements_by_xpath(x)
 
 
-def slow_type(element, text, delay=0.125):
+def slow_type(element, text, delay=0.05):
     for character in text:
         element.send_keys(character)
-        # driver.implicitly_wait(delay)
         sleep(delay)
 
 def CheckServerTime(url):
@@ -82,26 +80,22 @@ def login():
     # else:
     cred_login = credentials['login']
     cred_pass  = credentials['password']
-
+    
     login = WebDriverWait(driver, big_timeout).until(EC.visibility_of_element_located((By.XPATH, "*//input[@type='text']")))
-    sleep(1)
+    sleep(0.5)
     login.click()
-    # driver.implicitly_wait(1)
-    sleep(1)
+    sleep(0.25)
     slow_type(login, cred_login)
     
-    # driver.implicitly_wait(5)
-    sleep(5)
+    sleep(0.5)
     
     password = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.XPATH, "*//input[@type='password']")))
     password.click()
-    # driver.implicitly_wait(1)
-    sleep(1)
+    sleep(0.25)
     slow_type(password, cred_pass)
     
     login_button = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.XPATH, "*//input[@id='loginButton_0']")))
-    # driver.implicitly_wait(1)
-    sleep(1)
+    sleep(0.5)
     login_button.click()
     
 def Minoru():
@@ -112,33 +106,27 @@ def Minoru():
     login()
     
     flag = True
-    sleep_wait = 10
+    sleep_wait = 5
     while(flag):
         try:
             sleep(sleep_wait)
-            
             activities_button = WebDriverWait(driver, medium_timeout).until(EC.element_to_be_clickable((By.XPATH, "*//div/ul/a[contains(@href, 'richmondcity.perfectmind.com')]")))
-            sleep(1)
-            activities_button.click()
         except ElementClickInterceptedException:
             # print("Click intercepted")
             pass
         except:
             sleep_wait += 5
             driver.refresh()
-    activities_button.click()
+        else:
+            flag = False
+            sleep(1)
+            activities_button.click()
     
     # switch to another tab
     driver.switch_to.window(driver.window_handles[1])
     WaitPageLoad(driver)
     # print("Perfect mind!")
     
-    # - in Chrome xpath query, this gave me what I wanted
-    # *//span[contains(text(), 'REGISTERED VISIT - LANE SWIMMING')]/ancestor::div[@class='bm-class-container'] / *//span[contains(text(), '9:00am -')]/ancestor::div[@class='bm-class-container']
-    
-    
-    # - click to "Minoru Centre for Active Living"
-    # xpath(driver, "*//h2[contains(text(), 'Registered Visits')]/following-sibling::ul/li/a[contains(text(), 'Minoru Centre for Active Living')]").click()
     minoru_centre = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.XPATH, "*//h2[contains(text(), 'Registered Visits')]/following-sibling::ul/li/a[contains(text(), 'Minoru Centre for Active Living')]")))
     minoru_centre.click()
 
@@ -170,10 +158,13 @@ def s():
 def clickalert():
     # what speed do these appear with?
     try:
-        xpath(driver, "*//div[@class='message'][@role='alert']").click()
-        print("Alert found and clicked away")
+        # xpath(driver, "*//div[@class='message'][@role='alert']").click()
+        WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, "*//div[@class='message'][@role='alert']"))).click()
     except: 
         pass
+    else:
+        print("Alert found and clicked away")
+    sleep(0.5)
 
 """
 def register():
@@ -204,30 +195,44 @@ def next1():
 # - test up to questionnaire
 # --- go the the page, THEN launch this. That way can test irrespective of where we are
 def process():
+    clickalert()
+    
     reg_flag = True
     while(reg_flag):
         try:
             register_button = WebDriverWait(driver, 0.5).until(EC.element_to_be_clickable((By.XPATH, "*//a[contains(@class,'book-button')]")))
         except TimeoutException:
             driver.refresh()
-        finally:
+        else:
             reg_flag = False
     # register_button = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.XPATH, "*//a[contains(@class,'book-button')]")))
     clickalert()
+    
     register_button.click()
     
+    sleep(0.5)
     
     # --- ATTENDEES
     checkbox = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.XPATH, ".//table//label[contains(text(), '(You)')]/ancestor::tr//input[@type='checkbox']")))
     clickalert()
     if not checkbox.is_selected():
         checkbox.click()
-    clickalert()
     next0()
+    
+    sleep(0.5)
     
     
     # --- QUESTIONNAIRE
+    start = time()
     WaitPageLoad(driver)
+    end = time()
+    print("> load wait: {:3.2f}".format(end-start))
+    
+    consent_check = xpath(driver, "*//*[@class='reg-form']//div[@class='questionField']//input")
+    consent_press = xpath(driver, "*//*[@class='reg-form']//div[@class='questionField']//label")
+    if not consent_check.is_selected:
+        consent_press.click()
+    sleep(0.25)
     next1()
     
     
@@ -237,11 +242,20 @@ def process():
     pick_fee.click()
     next0()
     
+    
     # --- PAYMENT
-    order_button = WebDriverWait(driver, medium_timeout).until(EC.element_to_be_clickable((By.XPATH, "*//button[contains(text(), 'Place My Order')]")))
-    print("found the button, escaping")
-    return
-    order_button.click()
+    # - oh, this has an iframe. How quaint!
+    WaitPageLoad(driver)
+    WebDriverWait(driver, medium_timeout).until(EC.visibility_of_element_located((By.XPATH, "*//iframe[@name='iframe']")))
+    driver.switch_to.frame(xpath(driver, "*//iframe[@name='iframe']")) # can wait until it loads
+    order_button = WebDriverWait(driver, medium_timeout).until(EC.element_to_be_clickable((By.XPATH, "*//button[@class='process-now'][contains(text(), 'Place My Order')]")))
+    print("Got to the order button")
+    try:
+        order_button = WebDriverWait(driver, medium_timeout).until(EC.element_to_be_clickable((By.XPATH, "*//button[@class='process-now'][contains(text(), 'Place My Order')]")))
+    except:
+        print("Can't find order button")
+    else:
+        order_button.click()
     
 
 # register_buttons = xpaths(driver, "*//span[contains(text(), 'REGISTERED VISIT - LANE SWIMMING')]/ancestor::div[@class='bm-class-container'] / *//span[contains(text(),'9:00am - ')]/ancestor::div[@class='bm-class-container']//input[@type='button']")

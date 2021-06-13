@@ -10,10 +10,14 @@ from selenium.common.exceptions import ElementClickInterceptedException
 from selenium.common.exceptions import TimeoutException
 
 from time import time, sleep
+from datetime import datetime
+import json
+import os
 
 # from time import sleep
 import regex
 from glob import glob
+
 
 driver_path = 'K:\\[Newest Core]\\Tools\\chromedriver.exe'
 def get_chrome():
@@ -238,7 +242,7 @@ def process():
     
     # --- FEES AND EXTRAS
     pick_fee = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((By.XPATH, "*//div[@class='fee-section']//span[contains(text(), 'Aquatic & Fitness Membership')]/preceding-sibling::span[@class='outer-circle']")))
-    clickalert()
+    # clickalert()
     pick_fee.click()
     next0()
     
@@ -256,6 +260,30 @@ def process():
         print("Can't find order button")
     else:
         order_button.click()
+    
+    
+    
+    # --- session confirmation
+    WaitPageLoad(driver)
+    
+    session = xpath(driver, "*//div[@id='main-content']//div[@class='bm-event-info']//h2/span").text
+    date    = xpath(driver, "*//div[@id='main-content']//div[@class='bm-event-info']//span/span[@class='bm-date']").text.split(", ")[-1]
+    time    = xpath(driver, "*//div[@id='main-content']//div[@class='bm-event-info']//span/span[@class='bm-subject']").text
+    
+    d = {
+        "session" : session,
+        "date" : date,
+        "time" : time
+    }
+
+    save_folder = ".\\temp\\"
+    if not os.path.exists(save_folder):
+        os.mkdir(save_folder)
+    
+    timestamp = datetime.now().strftime("%H-%M-%S")
+    json.dump(d, open(save_folder+"session_results-{:s}.json".format(timestamp), "w"), indent=4)
+    xpath(driver, "*//body").screenshot(save_folder+"screenshot-{:s}.png".format(timestamp))
+    
     
 
 # register_buttons = xpaths(driver, "*//span[contains(text(), 'REGISTERED VISIT - LANE SWIMMING')]/ancestor::div[@class='bm-class-container'] / *//span[contains(text(),'9:00am - ')]/ancestor::div[@class='bm-class-container']//input[@type='button']")

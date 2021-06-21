@@ -17,6 +17,7 @@ import os
 import regex
 from glob import glob
 
+from control import ParseControls
 
 driver_path = 'K:\\[Newest Core]\\Tools\\chromedriver.exe'
 def get_chrome():
@@ -106,17 +107,17 @@ def Minoru():
     login()
     
     flag = True
-    sleep_wait = 5
+    # sleep_wait = 10
     while(flag):
         try:
-            sleep(sleep_wait)
-            activities_button = WebDriverWait(driver, medium_timeout).until(EC.element_to_be_clickable((By.XPATH, "*//div/ul/a[contains(@href, 'richmondcity.perfectmind.com')]")))
+            # sleep(sleep_wait)
+            activities_button = WebDriverWait(driver, 60).until(EC.element_to_be_clickable((By.XPATH, "*//div/ul/a[contains(@href, 'richmondcity.perfectmind.com')]")))
         except ElementClickInterceptedException:
             # print("Click intercepted")
             pass
         except:
             print("Probably maintenance... F5-ing")
-            sleep_wait += 5
+            # sleep_wait += 2
             driver.refresh() # this block should be sufficient against maintenance... COULDA TESTED IT THEN
         else:
             flag = False
@@ -202,7 +203,7 @@ def process():
     reg_flag = True
     while(reg_flag):
         try:
-            register_button = WebDriverWait(driver, 1.5).until(EC.element_to_be_clickable((By.XPATH, "*//a[contains(@class,'book-button')]")))
+            register_button = WebDriverWait(driver, 1.0).until(EC.element_to_be_clickable((By.XPATH, "*//a[contains(@class,'book-button')]")))
         except TimeoutException:
             driver.refresh()
         else:
@@ -287,7 +288,8 @@ def process():
     if not os.path.exists(save_folder):
         os.mkdir(save_folder)
     
-    timestamp = datetime.now().strftime("%H-%M-%S")
+    # timestamp = datetime.now().strftime("%H-%M-%S")
+    timestamp = datetime.now().strftime("%d-%m-%y %H-%M-%S")
     json.dump(d, open(save_folder+"session_results-{:s}.json".format(timestamp), "w"), indent=4)
     xpath(driver, "*//body").screenshot(save_folder+"screenshot-{:s}.png".format(timestamp))
     
@@ -299,42 +301,36 @@ def RegisterButtons(type_str, time_str):
     return [click_prefix+regex.compile(r"\(\'(.*)\'\)").search(x.get_attribute('onclick'))[1] for x in register_buttons if x.get_attribute('value')=='REGISTER']
 
 
-
-
-
-### ----- FLOW -----
 driver = get_chrome()
-driver.get(url)
 
-start = time()
-Minoru()
-end = time()
-print("> Login+Minoru: {:3.2f} seconds".format(end-start))
-
-# - wait for the table to appear
-start = time()
-WebDriverWait(driver, big_timeout).until(EC.visibility_of_element_located((By.XPATH, "*//table[@id='classes']")))
-end = time()
-print("> Classes: {:3.2f} seconds".format(end-start))
-# --- DETERMINES THE VENUES TO BOOK
-# - for testing at least, can make this return things based on search string from predetermined set
-
-
-# - the main order one
-# register_buttons = RegisterButtons('REGISTERED VISIT - LANE SWIMMING', '9:00am -')
-# days = register_buttons[7:]
-register_buttons = RegisterButtons('REGISTERED VISIT - FITNESS CENTRE', '6:45pm -')
-
-# for i in range(1,3):
-driver.get(register_buttons[2])
-process()
-# for rb in register_buttons:
-    # driver.get(rb)
-    # process()
-    # sleep(1)
-
-
-driver.close()
-driver.quit()
-exit(0)
-
+if __name__ == "__main__":
+    ### ----- FLOW -----
+    driver.get(url)
+    
+    start = time()
+    Minoru()
+    end = time()
+    print("> Login+Minoru: {:3.2f} seconds".format(end-start))
+    
+    # - wait for the table to appear
+    start = time()
+    WebDriverWait(driver, big_timeout).until(EC.visibility_of_element_located((By.XPATH, "*//table[@id='classes']")))
+    end = time()
+    print("> Classes: {:3.2f} seconds".format(end-start))
+    
+    
+    # control_type, control_time, control_first, control_last = ParseControls("test.json")
+    control_type, control_time, control_first, control_last = ParseControls("control.json")
+    register_buttons = RegisterButtons(control_type, control_time)[control_first:control_last]
+    
+    for rb in register_buttons:
+        driver.get(rb)
+        process()
+        sleep(1)
+    
+    
+    driver.close()
+    driver.quit()
+    exit(0)
+    
+    

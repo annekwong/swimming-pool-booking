@@ -34,3 +34,11 @@ for i in range(len(days)):
     process(driver)
     sleep(1)
 
+
+# --- pack confirmation info.
+
+
+# --- email.
+
+
+# --- bow out.

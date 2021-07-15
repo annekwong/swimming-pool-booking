@@ -468,11 +468,7 @@ def SlotNodes(driver, control):
 
 
 if __name__ == "__main__":
-    if(len(argv) == 2):
-        settings = ParseConfig(argv[1])
-    else:
-        print("scriptname jsonname")
-        exit(0)
+    settings = ParseConfig(argv[1])
     
     
     ### ----- FLOW -----

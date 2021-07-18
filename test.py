@@ -1,9 +1,10 @@
 from script import *
 
 
-
-driver = get_chrome()
+# driver = get_chrome()
+driver = headless_chrome()
 driver.get(url)
+WaitPageLoad(driver)
 
 start = time()
 Minoru(driver)
@@ -16,9 +17,8 @@ WebDriverWait(driver, big_timeout).until(EC.visibility_of_element_located((By.XP
 end = time()
 print("> Classes: {:3.2f} seconds".format(end-start))
 
-# control_type, control_time, control_first, control_last = ParseControls("control.json")
-# settings = ParseConfig("test.json")
-settings = ParseConfig("settings.json")
+# settings = ParseConfig("test.json") # test
+settings = ParseConfig("settings.json") # release
 
 slot_nodes = SlotNodes(driver, settings)
 
@@ -27,18 +27,18 @@ for s in slot_nodes[settings['start']:settings['stop']:settings['step']]:
     # print("{:s}, {:s}, {:s}, {:s}".format(swim_type, date, slot_time, spots))
     print("{:s}, {:s}, {:s}, {:s}".format(s['type'], s['date'], s['time'], s['spots']))
 
-days = [x['link'] for x in slot_nodes[-7:]]
+# days = [x['link'] for x in slot_nodes[1:8]] # test
+days = [x['link'] for x in slot_nodes[-7:]] # release
 
 for i in range(len(days)):
     driver.get(days[i])
     process(driver)
     sleep(1)
+print("> All booked")
 
-
-# --- pack confirmation info.
-
-
-# --- email.
 
 
 # --- bow out.
+driver.quit()
+print("> All done.")
+exit(0)

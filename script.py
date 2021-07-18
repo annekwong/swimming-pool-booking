@@ -34,6 +34,7 @@ def get_chrome():
 def headless_chrome():
     options = Options()
     options.add_argument("--headless")
+    options.add_argument('window-size=1920x1080');
     options.add_argument("--log-level=3");
     
     driver = webdriver.Chrome(executable_path=driver_path, options=options)
@@ -198,6 +199,9 @@ def next0(driver):
 def next1(driver):
     # print("Going next1")
     xpath(driver, "*//a[@title='Next']").click()
+
+def Timestamp():
+    return datetime.now().strftime("%d-%m-%y_%H-%M-%S")
 
 
 # - test up to questionnaire
@@ -411,7 +415,9 @@ def process(driver):
         os.mkdir(save_folder)
     
     # timestamp = datetime.now().strftime("%H-%M-%S")
-    timestamp = datetime.now().strftime("%d-%m-%y %H-%M-%S")
+    # timestamp = datetime.now().strftime("%d-%m-%y %H-%M-%S")
+    timestamp = Timestamp()
+    
     json.dump(d, open(save_folder+"session_results-{:s}.json".format(timestamp), "w"), indent=4)
     xpath(driver, "*//body").screenshot(save_folder+"screenshot-{:s}.png".format(timestamp))
     print("Booked {:s}, {:s}, {:s}".format(session, book_date, book_time))

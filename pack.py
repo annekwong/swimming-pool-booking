@@ -8,7 +8,10 @@ def Timestamp():
 
 def PackTemp():
     to_zip = glob(".\\temp\\*")
-    to_zip.append(glob("log_*.txt")[0])
+    try:
+        to_zip.append(glob("log_*.txt")[0])
+    except:
+        pass
     
     # daystamp = datetime.now().strftime("%d-%m-%y")
     # filename = "session_{:s}.zip".format(daystamp)

@@ -428,7 +428,7 @@ def RegisterButtons_v0(type_str, time_str):
     register_buttons = xpaths(driver, "*//span[contains(text(), '{:s}')]/ancestor::div[@class='bm-class-container'] / *//span[contains(text(),'{:s} ')]/ancestor::div[@class='bm-class-container']//input[@type='button']".format(type_str, time_str))
     return [click_prefix+regex.compile(r"\(\'(.*)\'\)").search(x.get_attribute('onclick'))[1] for x in register_buttons if x.get_attribute('value')=='REGISTER']
 # renamed
-def SlotNodes(driver, control):
+def SlotNodes(driver):
     # date = "./preceding-sibling::tr[@class='bm-marker-row'][1]").text
     
     classes_table = xpath(driver, "*//table[@id='classes']")
@@ -436,6 +436,10 @@ def SlotNodes(driver, control):
     
     # date = xpath(entries[0], "./preceding-sibling::tr[@class='bm-marker-row'][1]").text
     # entries = xpaths(classes_table, ".//div[@class='bm-class-header-wrapper']//span[contains(text(), '{:s}')]/ancestor::tr / .//div[@class='bm-group-item-desc']//span[contains(text(), '{:s}')]/ancestor::tr".format('LANE SWIMMING', '9:00am -'))
+    control = {
+        "type" : "REGISTERED VISIT - LANE SWIMMING",
+        "time" : "9:00am"
+    }
     nodes = xpaths(classes_table, ".//div[@class='bm-class-header-wrapper']//span[contains(text(), '{:s}')]/ancestor::tr / .//div[@class='bm-group-item-desc']//span[contains(text(), '{:s} -')]/ancestor::tr".format(control['type'], control['time']))
     # return [click_prefix+regex.compile(r"\(\'(.*)\'\)").search(xpath(x, ".//input").get_attribute('onclick'))[1] for x in entries]
     
@@ -444,7 +448,6 @@ def SlotNodes(driver, control):
     infos = []
     # for each entry, let's grab type, 
     for i in range(len(nodes)):
-    # for i in range(control['start'], control['stop'], control['step']):
         d = {}
         d['element'] = nodes[i]
         d['link']    = links[i]

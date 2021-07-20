@@ -1,5 +1,5 @@
 from script import *
-
+from test_date import *
 
 # driver = get_chrome()
 driver = headless_chrome()
@@ -17,25 +17,27 @@ WebDriverWait(driver, big_timeout).until(EC.visibility_of_element_located((By.XP
 end = time()
 print("> Classes: {:3.2f} seconds".format(end-start))
 
-# settings = ParseConfig("test.json") # test
-settings = ParseConfig("settings.json") # release
 
-slot_nodes = SlotNodes(driver, settings)
+slot_nodes = SlotNodes(driver)
 
-print("{}:{}:{}".format(settings['start'], settings['stop'], settings['step']))
-for s in slot_nodes[settings['start']:settings['stop']:settings['step']]:
-    # print("{:s}, {:s}, {:s}, {:s}".format(swim_type, date, slot_time, spots))
+dates  = [x['date'] for x in slot_nodes]
+today  = datetime.now().date()
+nextm  = FormatDate(NextMonday(today))
+offset = dates.index(nextm)
+
+
+print("\nWeek and days of interest: ")
+for s in slot_nodes[offset:offset+7]:
     print("{:s}, {:s}, {:s}, {:s}".format(s['type'], s['date'], s['time'], s['spots']))
 
-# days = [x['link'] for x in slot_nodes[1:8]] # test
-days = [x['link'] for x in slot_nodes[-7:]] # release
+days = [x['link'] for x in slot_nodes[offset:offset+7]] # release
+
 
 for i in range(len(days)):
     driver.get(days[i])
     process(driver)
     sleep(1)
 print("> All booked")
-
 
 
 # --- bow out.

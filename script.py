@@ -21,7 +21,6 @@ from sys import argv
 import regex
 from glob import glob
 
-from config import ParseConfig
 
 driver_path = 'K:\\[Newest Core]\\Tools\\chromedriver.exe'
 def get_chrome():
@@ -436,10 +435,16 @@ def SlotNodes(driver):
     
     # date = xpath(entries[0], "./preceding-sibling::tr[@class='bm-marker-row'][1]").text
     # entries = xpaths(classes_table, ".//div[@class='bm-class-header-wrapper']//span[contains(text(), '{:s}')]/ancestor::tr / .//div[@class='bm-group-item-desc']//span[contains(text(), '{:s}')]/ancestor::tr".format('LANE SWIMMING', '9:00am -'))
-    control = {
-        "type" : "REGISTERED VISIT - LANE SWIMMING",
-        "time" : "9:00am"
-    }
+    # control = {
+        # "type" : "REGISTERED VISIT - LANE SWIMMING",
+        # "time" : "9:00 am"
+    # }
+    
+    # control = json.load(open("control_test.json","r"))
+    control = json.load(open("control_release.json","r"))
+    print("Book type: {:s}".format(control['type']))
+    print("Book time: {:s}".format(control['time']))
+    
     nodes = xpaths(classes_table, ".//div[@class='bm-class-header-wrapper']//span[contains(text(), '{:s}')]/ancestor::tr / .//div[@class='bm-group-item-desc']//span[contains(text(), '{:s} -')]/ancestor::tr".format(control['type'], control['time']))
     # return [click_prefix+regex.compile(r"\(\'(.*)\'\)").search(xpath(x, ".//input").get_attribute('onclick'))[1] for x in entries]
     
@@ -477,7 +482,6 @@ def SlotNodes(driver):
 
 
 if __name__ == "__main__":
-    settings = ParseConfig(argv[1])
     
     
     ### ----- FLOW -----
